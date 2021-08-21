@@ -1,0 +1,15 @@
+- add_host:
+    name: "{{item}}"
+    groups: linux
+  loop: "{{lookup ('vars', 'myvar', wantlist=True)}}"
+  vars:
+    myvar: "{{server}}"
+  when: system == "linux"
+
+- add_host:
+    name: "{{item}}"
+    groups: windows
+  loop: "{{lookup ('vars', 'myvar', wantlist=True)}}"
+  vars:
+    myvar: "{{server}}"
+  when: system == "windows"

@@ -1,0 +1,73 @@
+- name: Instalação do zabbix-agent
+  yum: 
+    name: zabbix-agent
+    state: present 
+
+- name: Ajustando ServerActive
+  lineinfile:
+    path: /etc/zabbix/zabbix_agentd.conf
+    state: present
+    regexp: '^ServerActive='
+    line: 'ServerActive=your.server.zabbix'
+
+- name: Ajustando Server
+  lineinfile:
+    path: /etc/zabbix/zabbix_agentd.conf
+    state: present
+    regexp: '^Server='
+    line: 'Server=your.server.zabbix'
+
+- name: Ajustando Hostname
+  lineinfile:
+    path: /etc/zabbix/zabbix_agentd.conf
+    state: present
+    regexp: '^Hostname='
+    line: "Hostname={{ansible_fqdn | upper}}"
+
+- name: Ajustando ListenPort
+  lineinfile:
+    path: /etc/zabbix/zabbix_agentd.conf
+    regexp: '^# ListenPort=10050'
+    line: "ListenPort=10050"
+
+- name: Habilitando o Daemon do zabbix-agent
+  systemd: 
+    state: restarted
+    enabled: yes
+    name: zabbix-agent 
+
+- service_facts: 
+
+- debug:
+    var: ansible_facts.services["zabbix-agent.service"]
+
+- local_action:
+    module: zabbix_host
+    validate_certs: no
+    server_url: https://zabbix.com.br
+    login_user: "{{user}}"
+    login_password: "{{pass}}"
+    host_name: "{{server | upper}}"
+    visible_name: "{{server | upper}}"
+    host_groups:
+      - Example group1
+      - Example group2
+    link_templates:
+      - Example template1
+      - Example template2
+    status: enabled
+    state: present
+    inventory_mode: automatic
+    interfaces:
+      - type: agent
+        main: 1
+        useip: 1
+        ip: "{{ansible_eth0.ipv4.address}}"
+        dns: "{{server | upper}}"
+        port: 10050
+  delegate_to: locahost
+  vars:
+    ansible_connection: local
+  environment:
+    no_proxy: " "
+  ignore_errors: yes

@@ -1,0 +1,27 @@
+---
+- hosts: localhost
+  gather_facts: no
+
+  tasks:
+
+  - include_role:
+      name: inventory
+
+- hosts: linux
+  gather_facts: yes
+
+  tasks:
+
+  - name: Instalando o agent do Zabbix
+    include_role:
+      name: linux
+
+- hosts: windows
+  gather_facts: yes
+  vars:
+    ansible_connection: winrm
+    ansible_winrm_server_cert_validation: ignore
+
+  - name: Instalando o agent do Zabbix
+    include_role:
+      name: windows

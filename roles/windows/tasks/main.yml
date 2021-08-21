@@ -1,0 +1,90 @@
+- name: Criando diretório para armazenar o agent Zabbix
+  win_file:
+    path: C:\zabbix
+    state: directory
+
+- name: Download do agent Zabbix
+  win_get_url:
+    url: "https://cdn.zabbix.com/zabbix/binaries/stable/5.2/5.2.6/zabbix_agent-5.2.6-windows-amd64.zip"
+    dest: C:\zabbix
+    force: yes
+    proxy_url: http://proxyurl:port
+
+- name: Descompactação do agent Zabbix
+  win_unzip: 
+    src: C:\zabbix\zabbix_agent-5.2.6-windows-amd64.zip
+    dest: C:\zabbix
+
+- name: Ajustando ServerActive
+  win_lineinfile:
+    path: C:\zabbix\conf\zabbix_agentd.conf
+    state: present
+    regexp: '^ServerActive='
+    line: 'ServerActive=your.server.zabbix'
+
+- name: Ajustando Server 
+  win_lineinfile:
+    path: C:\zabbix\conf\zabbix_agentd.conf
+    state: present
+    regexp: '^Server='
+    line: 'Server=your.server.zabbix'
+
+- name: Ajustando Hostname
+  win_lineinfile:
+    path: C:\zabbix\conf\zabbix_agentd.conf
+    state: present
+    regexp: '^Hostname='
+    line: "Hostname={{ansible_fqdn | upper}}"
+
+- name: Ajustando ListenPort
+  win_lineinfile:
+    path: C:\zabbix\conf\zabbix_agentd.conf
+    regexp: '^# ListenPort=10050'
+    line: "ListenPort=10050"
+
+- name: Instalando o agent Zabbix 
+  win_shell: |
+    C:\zabbix\bin\zabbix_agentd.exe --config C:\zabbix\conf\zabbix_agentd.conf --install
+
+- name: Iniciando o agent Zabbix
+  win_shell: |
+    C:\zabbix\bin\zabbix_agentd.exe --start
+
+- name: Validando o serviço 
+  win_shell: |
+    get-service 'Zabbix Agent'
+  register: zabbix
+
+- debug:
+    msg: "{{ zabbix.stdout_lines }}"
+
+- local_action:
+    module: zabbix_host
+    validate_certs: no
+    server_url: https://zabbix.com.br
+    login_user: "{{user}}"
+    login_password: "{{pass}}"
+    host_name: "{{server | upper}}"
+    visible_name: "{{server | upper}}"
+    host_groups:
+      - Example group1
+      - Example group2
+    link_templates:
+      - Example template1
+      - Example template2
+    status: enabled
+    state: present
+    inventory_mode: automatic
+    interfaces:
+      - type: agent
+        main: 1
+        useip: 1
+        ip: "{{ansible_ip_addresses [0]}}"
+        dns: "{{server | upper}}"
+        port: 10050
+  delegate_to: locahost 
+  vars:
+    ansible_connection: local
+  environment:
+    no_proxy: " "
+  ignore_errors: yes
