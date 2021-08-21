@@ -2,7 +2,7 @@
 -------------
 
 - Projeto para instalação do Zabbix em Windows e Linux 
-- Linux Cento/Rhel 7 e 8
+- Linux Centos/Rhel 7 e 8
 - Windows 2012, 2016 e 2019
 
 ============================================================================
