@@ -12,7 +12,7 @@
 
 - [X] Instala a última versão do Zabbix;
 - [x] Ajusta o arquivo de configuração;
-- [X] Registra o servidor na monitoraçã;
+- [X] Registra o servidor na monitoração;
 
 ============================================================================
 
